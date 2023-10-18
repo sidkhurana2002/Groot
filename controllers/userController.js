@@ -141,10 +141,67 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Get local leaderboard
+// controllers/userController.js
+
+// Get local leaderboard
+// controllers/userController.js
+
+// Get local leaderboard
+const getLocalLeaderboard = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Extract resident_location from the user's profile
+    const residentLocation = user.profile.resident_location;
+
+    // Find users in the same location, including the specified user
+    const localLeaderboard = await User.find({
+      "profile.resident_location": residentLocation,
+    })
+      .sort({ "profile.progress.totalPoints": -1 }) // Sort by totalPoints in descending order
+      .limit(10); // Limit the results to the top 10 users
+
+    res.status(200).json({ localLeaderboard });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// controllers/userController.js
+
+// Get global leaderboard
+const getGlobalLeaderboard = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Find all users, including the specified user
+    const globalLeaderboard = await User.find({
+      _id: { $ne: userId }, // Exclude the specified user
+    })
+      .sort({ "profile.progress.totalPoints": -1 }) // Sort by totalPoints in descending order
+      .limit(10); // Limit the results to the top 10 users
+
+    res.status(200).json({ globalLeaderboard });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   editUser,
   deleteUser,
+  getLocalLeaderboard,
+  getGlobalLeaderboard,
 };

@@ -1,41 +1,35 @@
 // // controllers/leaderboardController.js
-// const Leaderboard = require("../models/Leaderboard");
+
 // const User = require("../models/User");
 
+// // Get local leaderboard
 // const getLocalLeaderboard = async (req, res) => {
 //   try {
-//     const userId = req.params.userId;
+//     const { residentLocation } = req.user.profile; // Assuming user is authenticated and user data is available in req.user
 
-//     // Find the user to get their location
-//     const user = await User.findById(userId);
+//     const localLeaderboard = await User.find({
+//       "profile.resident_location": {
+//         $regex: new RegExp(residentLocation, "i"),
+//       },
+//     })
+//       .sort({ "profile.progress.totalPoints": -1 })
+//       .limit(10); // Limiting to the top 10 users, adjust as needed
 
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
+//     res.status(200).json({ localLeaderboard });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
-//     const userLocation = user.profile.resident_location;
+// // Get global leaderboard
+// const getGlobalLeaderboard = async (req, res) => {
+//   try {
+//     const globalLeaderboard = await User.find()
+//       .sort({ "profile.progress.totalPoints": -1 })
+//       .limit(10); // Limiting to the top 10 users, adjust as needed
 
-//     // Find the local leaderboard for the user's location
-//     const localLeaderboard = await Leaderboard.findOne({
-//       location: userLocation,
-//     });
-
-//     if (!localLeaderboard) {
-//       return res
-//         .status(404)
-//         .json({
-//           message: "Local leaderboard not found for the user's location",
-//         });
-//     }
-
-//     // Sort users based on points in descending order
-//     const sortedUsers = localLeaderboard.users.sort(
-//       (a, b) => b.points - a.points
-//     );
-
-//     res.json({
-//       localLeaderboard: { location: userLocation, users: sortedUsers },
-//     });
+//     res.status(200).json({ globalLeaderboard });
 //   } catch (error) {
 //     console.error(error);
 //     res.status(500).json({ message: "Internal server error" });
@@ -44,4 +38,5 @@
 
 // module.exports = {
 //   getLocalLeaderboard,
+//   getGlobalLeaderboard,
 // };

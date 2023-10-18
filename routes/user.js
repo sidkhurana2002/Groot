@@ -12,5 +12,8 @@ router.delete("/delete", userController.deleteUser);
 router.post("/addTrip", async (req, res) => {
   await challengeController.addTrip(req, res);
 });
+// Add these lines after the existing routes
+router.get("/localLeaderboard", userController.getLocalLeaderboard);
+router.get("/globalLeaderboard", userController.getGlobalLeaderboard);
 
 module.exports = router;
