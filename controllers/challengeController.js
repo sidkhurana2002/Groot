@@ -57,6 +57,7 @@ const addTrip = async (req, res) => {
 
     // Convert distance to kilometers
     const distanceInKm = distance / 1000;
+    const emmission = distanceInKm * 0.142;
 
     const currentDate = new Date();
     const newTrip = new Trip({
@@ -124,6 +125,7 @@ const addTrip = async (req, res) => {
       message: "Trip added successfully",
       trip: newTrip,
       distance: distanceInKm,
+      emission_grams: emmission,
     });
   } catch (error) {
     console.error(error);
