@@ -17,11 +17,15 @@ router.get("/localLeaderboard", userController.getLocalLeaderboard);
 router.get("/globalLeaderboard", userController.getGlobalLeaderboard);
 router.get("/totalPointsandusers", userController.getTotalPointsAndUsers);
 router.get("/splitLeaderboard", userController.getSplitLeaderboard);
-
+router.post("/getUser", userController.getUser);
 // Add this line after the existing routes
 router.post(
   "/challengeLeaderboard",
   challengeController.getChallengeLeaderboard
+);
+router.post(
+  "/earning_history",
+  challengeController.getChallenge_user_earning_history
 );
 
 module.exports = router;

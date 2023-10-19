@@ -143,19 +143,63 @@ const getChallengeLeaderboard = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const challengeLeaderboard = user.challenges.map((challenge) => ({
+    const challengeLeaderboard = user.challenges.map((challenge) => {
+      const sortedUsers = challenge.challengeId.users
+        .sort((a, b) => {
+          const pointsA = a.userId.profile?.progress?.totalPoints || 0;
+          const pointsB = b.userId.profile?.progress?.totalPoints || 0;
+          return pointsB - pointsA;
+        })
+        .map((challengeUser) => {
+          const profile = challengeUser.userId.profile || {};
+          const totalPoints = profile.progress?.totalPoints || 0;
+
+          return {
+            userId: challengeUser.userId._id,
+            username: challengeUser.userId.username,
+            completed: challengeUser.completed,
+            completionDate: challengeUser.completionDate,
+            totalPoints,
+          };
+        });
+
+      return {
+        challengeId: challenge.challengeId._id,
+        title: challenge.challengeId.title,
+        description: challenge.challengeId.description,
+        users: sortedUsers,
+      };
+    });
+
+    res.status(200).json({ challengeLeaderboard });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getChallenge_user_earning_history = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(userId).populate("challenges.challengeId");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Extract completed challenges and points
+    const completedChallenges = user.challenges.map((challenge) => ({
       challengeId: challenge.challengeId._id,
       title: challenge.challengeId.title,
       description: challenge.challengeId.description,
-      users: challenge.challengeId.users.map((challengeUser) => ({
-        userId: challengeUser.userId._id,
-        username: challengeUser.userId.username,
-        completed: challengeUser.completed,
-        completionDate: challengeUser.completionDate,
-      })),
+      completed: challenge.completed,
+      completionDate: challenge.completionDate,
+      pointsEarned: challenge.challengeId.challenge_points,
     }));
 
-    res.status(200).json({ challengeLeaderboard });
+    res.status(200).json({ completedChallenges });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
@@ -167,4 +211,5 @@ module.exports = {
   getChallenges,
   addTrip,
   getChallengeLeaderboard,
+  getChallenge_user_earning_history,
 };

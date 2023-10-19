@@ -1,5 +1,5 @@
 // controllers/discountController.js
-const Discount = require("../models/Discount");
+const Discount = require("../models/Redeem");
 
 const addDiscount = async (req, res) => {
   try {
