@@ -16,5 +16,12 @@ router.post("/addTrip", async (req, res) => {
 router.get("/localLeaderboard", userController.getLocalLeaderboard);
 router.get("/globalLeaderboard", userController.getGlobalLeaderboard);
 router.get("/totalPointsandusers", userController.getTotalPointsAndUsers);
+router.get("/splitLeaderboard", userController.getSplitLeaderboard);
+
+// Add this line after the existing routes
+router.post(
+  "/challengeLeaderboard",
+  challengeController.getChallengeLeaderboard
+);
 
 module.exports = router;

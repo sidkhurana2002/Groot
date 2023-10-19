@@ -224,6 +224,33 @@ const getTotalPointsAndUsers = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const getSplitLeaderboard = async (req, res) => {
+  try {
+    // Aggregate to group users by resident_location and calculate the sum of totalPoints
+    const splitLeaderboard = await User.aggregate([
+      {
+        $group: {
+          _id: "$profile.resident_location",
+          totalPoints: { $sum: "$profile.progress.totalPoints" },
+          users: {
+            $push: {
+              username: "$username",
+              totalPoints: "$profile.progress.totalPoints",
+            },
+          },
+        },
+      },
+      {
+        $sort: { totalPoints: -1 },
+      },
+    ]);
+
+    res.status(200).json({ splitLeaderboard });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -234,4 +261,5 @@ module.exports = {
   getLocalLeaderboard,
   getGlobalLeaderboard,
   getTotalPointsAndUsers,
+  getSplitLeaderboard,
 };

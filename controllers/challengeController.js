@@ -132,9 +132,39 @@ const addTrip = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const getChallengeLeaderboard = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(userId).populate("challenges.challengeId");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const challengeLeaderboard = user.challenges.map((challenge) => ({
+      challengeId: challenge.challengeId._id,
+      title: challenge.challengeId.title,
+      description: challenge.challengeId.description,
+      users: challenge.challengeId.users.map((challengeUser) => ({
+        userId: challengeUser.userId._id,
+        username: challengeUser.userId.username,
+        completed: challengeUser.completed,
+        completionDate: challengeUser.completionDate,
+      })),
+    }));
+
+    res.status(200).json({ challengeLeaderboard });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   addChallenge,
   getChallenges,
   addTrip,
+  getChallengeLeaderboard,
 };
