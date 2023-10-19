@@ -6,7 +6,7 @@ const config = require("../config");
 
 const registerUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, resident_location, name } = req.body;
 
     // Check if the user already exists
     const existingUser = await User.findOne({ email });
@@ -18,7 +18,12 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new user with the correct field name for the password hash
-    const newUser = new User({ username, email, passwordHash: hashedPassword });
+    const newUser = new User({
+      username,
+      email,
+      passwordHash: hashedPassword,
+      profile: { resident_location, name }, // Include the resident_location and name
+    });
     await newUser.save();
 
     // Generate JWT token
