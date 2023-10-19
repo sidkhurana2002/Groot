@@ -28,7 +28,7 @@ const registerUser = async (req, res) => {
     res.cookie("jwtToken", token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
 
     return res
-      .status(201)
+      .status(200)
       .json({ message: "User registered successfully", token });
   } catch (error) {
     console.error(error);
@@ -60,7 +60,7 @@ const loginUser = async (req, res) => {
 
     // Set cookie and send response
     res.cookie("token", token, { httpOnly: true, maxAge: 1000 * 60 * 60 });
-    res.json({
+    res.status(200).json({
       message: "Login successful",
       token,
     });
