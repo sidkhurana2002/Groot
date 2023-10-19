@@ -185,14 +185,10 @@ const getLocalLeaderboard = async (req, res) => {
 // Get global leaderboard
 const getGlobalLeaderboard = async (req, res) => {
   try {
-    const { userId } = req.body;
-
-    // Find all users, including the specified user
-    const globalLeaderboard = await User.find({
-      _id: { $ne: userId }, // Exclude the specified user
-    })
+    // Find all users
+    const globalLeaderboard = await User.find()
       .sort({ "profile.progress.totalPoints": -1 }) // Sort by totalPoints in descending order
-      .limit(100); // Limit the results to the top 10 users
+      .limit(100); // Limit the results to the top 100 users
 
     res.status(200).json({ globalLeaderboard });
   } catch (error) {
