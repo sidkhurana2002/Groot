@@ -171,7 +171,7 @@ const getLocalLeaderboard = async (req, res) => {
       "profile.resident_location": residentLocation,
     })
       .sort({ "profile.progress.totalPoints": -1 }) // Sort by totalPoints in descending order
-      .limit(10); // Limit the results to the top 10 users
+      .limit(100); // Limit the results to the top 10 users
 
     res.status(200).json({ localLeaderboard });
   } catch (error) {
@@ -192,9 +192,37 @@ const getGlobalLeaderboard = async (req, res) => {
       _id: { $ne: userId }, // Exclude the specified user
     })
       .sort({ "profile.progress.totalPoints": -1 }) // Sort by totalPoints in descending order
-      .limit(10); // Limit the results to the top 10 users
+      .limit(100); // Limit the results to the top 10 users
 
     res.status(200).json({ globalLeaderboard });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// ... Other methods ...
+
+// Get total points of all users and total number of users
+const getTotalPointsAndUsers = async (req, res) => {
+  try {
+    // Calculate the sum of totalPoints for all users
+    const totalPoints = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalPoints: { $sum: "$profile.progress.totalPoints" },
+        },
+      },
+    ]);
+
+    // Get the total number of users
+    const totalUsers = await User.countDocuments();
+
+    res.status(200).json({
+      totalPoints: totalPoints[0]?.totalPoints || 0,
+      totalUsers,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
@@ -209,4 +237,5 @@ module.exports = {
   deleteUser,
   getLocalLeaderboard,
   getGlobalLeaderboard,
+  getTotalPointsAndUsers,
 };
