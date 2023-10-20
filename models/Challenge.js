@@ -18,6 +18,18 @@ const challengeSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  transportType: {
+    type: String,
+  },
+  challengeImage: {
+    type: String,
+  },
+  challengeAgeLimit: {
+    type: Number,
+  },
+  lastDateToComplete: {
+    type: Date,
+  },
   users: [
     {
       userId: {

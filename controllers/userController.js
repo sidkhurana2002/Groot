@@ -6,7 +6,15 @@ const config = require("../config");
 
 const registerUser = async (req, res) => {
   try {
-    const { username, email, password, resident_location, name } = req.body;
+    const {
+      username,
+      email,
+      password,
+      resident_location,
+      name,
+      age,
+      industry, // Add industry to the registration process
+    } = req.body;
 
     // Check if the user already exists
     const existingUser = await User.findOne({ email });
@@ -22,7 +30,7 @@ const registerUser = async (req, res) => {
       username,
       email,
       passwordHash: hashedPassword,
-      profile: { resident_location, name }, // Include the resident_location and name
+      profile: { resident_location, name, age, industry }, // Include the age and industry in the profile
     });
     await newUser.save();
 
@@ -110,6 +118,8 @@ const editUser = async (req, res) => {
     user.profile.resident_location =
       req.body.resident_location || user.profile.resident_location;
     user.profile.socialMedia = req.body.socialMedia || user.profile.socialMedia;
+    user.profile.age = req.body.age || user.profile.age;
+    user.profile.industry = req.body.industry || user.profile.industry; // Add industry to the update process
 
     await user.save();
 
@@ -119,6 +129,7 @@ const editUser = async (req, res) => {
     res.status(500).json({ message: "Error editing user" });
   }
 };
+
 const deleteUser = async (req, res) => {
   try {
     // Verify JWT token from header

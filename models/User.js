@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -33,6 +34,10 @@ const userSchema = new mongoose.Schema({
     ],
     achievements: [
       {
+        badgeId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Badge",
+        },
         title: String,
         description: String,
       },
@@ -44,6 +49,29 @@ const userSchema = new mongoose.Schema({
       },
       experience: String,
     },
+    age: {
+      type: Number,
+    },
+    totalCarbonEmission: {
+      type: Number,
+      default: 0,
+    },
+    lastChallengeDateTime: {
+      type: Date,
+    },
+    user_dislike: [
+      {
+        category: String,
+        count: Number,
+      },
+    ],
+    user_likes: [
+      {
+        category: String,
+        count: Number,
+      },
+    ],
+    industry: String, // Add the industry attribute
   },
   trips: [
     {
