@@ -6,7 +6,8 @@ const userRoutes = require("./routes/user");
 const adminRoutes = require("./routes/admin");
 const productRoutes = require("./routes/productRoutes");
 const discountRoutes = require("./routes/discountRoutes");
-const orderRoutes = require("./routes/orderRoutes"); // Import the order routes
+const orderRoutes = require("./routes/orderRoutes");
+const communityPostRoutes = require("./routes/communityPost"); // Import the order routes
 //const tripRoutes = require("./routes/trip");
 //const distanceRoutes = require("./routes/distanceRoutes");
 //const tripRoutes = require("./routes/user");
@@ -39,6 +40,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/discounts", discountRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/communityPost", communityPostRoutes); // Use the order routes
 //app.use("/api/trip", tripRoutes);
 //app.use("/api/distance", distanceRoutes);
 //app.use("/api/trip", tripRoutes);
