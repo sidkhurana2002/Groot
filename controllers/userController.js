@@ -200,6 +200,30 @@ const getGlobalLeaderboard = async (req, res) => {
 // ... Other methods ...
 
 // Get total points of all users and total number of users
+// const getTotalPointsAndUsers = async (req, res) => {
+//   try {
+//     // Calculate the sum of totalPoints for all users
+//     const totalPoints = await User.aggregate([
+//       {
+//         $group: {
+//           _id: null,
+//           totalPoints: { $sum: "$profile.progress.totalPoints" },
+//         },
+//       },
+//     ]);
+
+//     // Get the total number of users
+//     const totalUsers = await User.countDocuments();
+
+//     res.status(200).json({
+//       totalPoints: totalPoints[0]?.totalPoints || 0,
+//       totalUsers,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 const getTotalPointsAndUsers = async (req, res) => {
   try {
     // Calculate the sum of totalPoints for all users
@@ -215,15 +239,54 @@ const getTotalPointsAndUsers = async (req, res) => {
     // Get the total number of users
     const totalUsers = await User.countDocuments();
 
+    const { userId } = req.body;
+
+    // Validate that userId is provided
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "User ID is required in the request body" });
+    }
+
+    // Find the user by ID and extract the resident_location
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const residentLocation = user.profile.resident_location;
+
+    // Calculate the sum of totalPoints for users with the same resident_location
+    const totallocalPoints = await User.aggregate([
+      {
+        $match: {
+          "profile.resident_location": residentLocation,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalPoints: { $sum: "$profile.progress.totalPoints" },
+          totalUsers: { $sum: 1 },
+        },
+      },
+    ]);
+
     res.status(200).json({
-      totalPoints: totalPoints[0]?.totalPoints || 0,
-      totalUsers,
+      total_G_Points: totalPoints[0]?.totalPoints || 0,
+      //total_G_Points: totalPoints,
+      total_G_Users: totalUsers,
+      residentLocation,
+      total_L_Points: totallocalPoints[0]?.totalPoints || 0,
+      total_L_Users: totallocalPoints[0]?.totalUsers || 0,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const getSplitLeaderboard = async (req, res) => {
   try {
     // Aggregate to group users by resident_location and calculate the sum of totalPoints

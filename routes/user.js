@@ -15,7 +15,7 @@ router.post("/addTrip", async (req, res) => {
 // Add these lines after the existing routes
 router.get("/localLeaderboard", userController.getLocalLeaderboard);
 router.get("/globalLeaderboard", userController.getGlobalLeaderboard);
-router.get("/totalPointsandusers", userController.getTotalPointsAndUsers);
+router.post("/totalPointsandusers", userController.getTotalPointsAndUsers);
 router.get("/splitLeaderboard", userController.getSplitLeaderboard);
 router.post("/getUser", userController.getUser);
 // Add this line after the existing routes

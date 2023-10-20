@@ -1,6 +1,7 @@
 // server.js
 const express = require("express");
 const connectDB = require("./config/db");
+const cors = require("cors");
 const userRoutes = require("./routes/user");
 const adminRoutes = require("./routes/admin");
 const productRoutes = require("./routes/productRoutes");
@@ -11,8 +12,21 @@ const orderRoutes = require("./routes/orderRoutes"); // Import the order routes
 //const tripRoutes = require("./routes/user");
 
 // Initialize Express app
+var originsWhitelist = [
+  "http://localhost:3000", //this is my front-end url for development
+  "http://www.myproductionurl.com",
+  "http://localhost:3008",
+];
+var corsOptions = {
+  origin: function (origin, callback) {
+    console.log(origin);
+    var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+    callback(null, isWhitelisted);
+  },
+  credentials: true,
+};
 const app = express();
-
+app.use(cors(corsOptions));
 // Connect to MongoDB
 connectDB();
 
