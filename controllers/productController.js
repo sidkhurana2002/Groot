@@ -38,7 +38,33 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+const deleteProduct = async (req, res) => {
+  const productId = req.body.productId;
+
+  try {
+    // Validate that productId is provided
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ message: "Product ID is required in the request body" });
+    }
+
+    // Find the product by ID and delete it
+    const deletedProduct = await Product.findByIdAndDelete(productId);
+
+    if (!deletedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   addProduct,
   getAllProducts,
+  deleteProduct,
 };
