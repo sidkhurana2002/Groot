@@ -3,6 +3,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
+const Product = require("../models/Product");
 
 const registerUser = async (req, res) => {
   try {
@@ -164,6 +165,9 @@ const deleteUser = async (req, res) => {
 // controllers/userController.js
 
 // Get local leaderboard
+// controllers/userController.js
+
+// Get local leaderboard
 const getLocalLeaderboard = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -174,17 +178,33 @@ const getLocalLeaderboard = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Determine the age range based on user's age
+    let ageRange;
+    const userAge = user.profile.age;
+
+    if (userAge >= 0 && userAge <= 20) {
+      ageRange = { min: 0, max: 20 };
+    } else if (userAge >= 21 && userAge <= 40) {
+      ageRange = { min: 21, max: 40 };
+    } else if (userAge >= 41 && userAge <= 60) {
+      ageRange = { min: 41, max: 60 };
+    } else {
+      ageRange = { min: 0, max: 120 }; // A default range for unknown ages
+    }
+
     // Extract resident_location from the user's profile
     const residentLocation = user.profile.resident_location;
 
-    // Find users in the same location, including the specified user
+    // Find users in the same location and age range, excluding the specified user
     const localLeaderboard = await User.find({
+      //  _id: { $ne: userId }, // Exclude the specified user
       "profile.resident_location": residentLocation,
+      "profile.age": { $gte: ageRange.min, $lte: ageRange.max },
     })
       .sort({ "profile.progress.totalPoints": -1 }) // Sort by totalPoints in descending order
-      .limit(100); // Limit the results to the top 10 users
+      .limit(100); // Limit the results to the top 100 users
 
-    res.status(200).json({ localLeaderboard });
+    res.status(200).json({ localLeaderboard, ageRange });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
@@ -196,18 +216,42 @@ const getLocalLeaderboard = async (req, res) => {
 // Get global leaderboard
 const getGlobalLeaderboard = async (req, res) => {
   try {
-    // Find all users
-    const globalLeaderboard = await User.find()
+    const { userId } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Determine the age range based on user's age
+    let ageRange;
+    const userAge = user.profile.age;
+
+    if (userAge >= 0 && userAge <= 20) {
+      ageRange = { min: 0, max: 20 };
+    } else if (userAge >= 21 && userAge <= 40) {
+      ageRange = { min: 21, max: 40 };
+    } else if (userAge >= 41 && userAge <= 60) {
+      ageRange = { min: 41, max: 60 };
+    } else {
+      ageRange = { min: 0, max: 120 }; // A default range for unknown ages
+    }
+
+    // Find users in the specified age range, excluding the specified user
+    const globalLeaderboard = await User.find({
+      //_id: { $ne: userId }, // Exclude the specified user
+      "profile.age": { $gte: ageRange.min, $lte: ageRange.max },
+    })
       .sort({ "profile.progress.totalPoints": -1 }) // Sort by totalPoints in descending order
       .limit(100); // Limit the results to the top 100 users
 
-    res.status(200).json({ globalLeaderboard });
+    res.status(200).json({ globalLeaderboard, ageRange });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 // ... Other methods ...
 
 // Get total points of all users and total number of users
@@ -345,6 +389,73 @@ const getUser = async (req, res) => {
   }
 };
 
+const likeProduct = async (req, res) => {
+  try {
+    const { user_id, category } = req.body;
+
+    // Find the user by user_id
+    const user = await User.findById(user_id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the category exists in user_likes
+    const likedCategory = user.profile.user_likes.find(
+      (like) => like.category === category
+    );
+
+    if (likedCategory) {
+      // Increment the count if the category is already liked
+      likedCategory.count++;
+    } else {
+      // Add the category to user_likes if not already liked
+      user.profile.user_likes.push({ category, count: 1 });
+    }
+
+    // Save the user
+    await user.save();
+
+    res.status(200).json({ message: "Product liked successfully", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+const dislikeProduct = async (req, res) => {
+  try {
+    const { user_id, category } = req.body;
+
+    // Find the user by user_id
+    const user = await User.findById(user_id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the category exists in user_dislike
+    const dislikedCategory = user.profile.user_dislike.find(
+      (dislike) => dislike.category === category
+    );
+
+    if (dislikedCategory) {
+      // Increment the count if the category is already disliked
+      dislikedCategory.count++;
+    } else {
+      // Add the category to user_dislike if not already disliked
+      user.profile.user_dislike.push({ category, count: 1 });
+    }
+
+    // Save the user
+    await user.save();
+
+    res.status(200).json({ message: "Product disliked successfully", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -356,4 +467,6 @@ module.exports = {
   getTotalPointsAndUsers,
   getSplitLeaderboard,
   getUser,
+  likeProduct,
+  dislikeProduct,
 };

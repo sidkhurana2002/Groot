@@ -1,59 +1,63 @@
-// controllers/orderController.js
 const Order = require("../models/Order");
 const User = require("../models/User");
-const Discount = require("../models/Redeem");
+const Redeem = require("../models/Redeem");
 const Product = require("../models/Product");
 
 const placeOrder = async (req, res) => {
   try {
-    const { userId, products, totalPrice } = req.body;
+    const { userId, products, redeemPoints } = req.body;
 
-    // Check if the user exists
+    // Find the user by userId
     const user = await User.findById(userId);
+
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Validate product IDs and retrieve product details
-    const productDetails = await Promise.all(
-      products.map(async (item) => {
-        const product = await Product.findById(item.productId);
-        if (!product) {
-          return res
-            .status(404)
-            .json({ error: `Product not found with ID ${item.productId}` });
-        }
-        return {
-          productId: product._id,
-          quantity: item.quantity,
-          price: product.price,
-        };
-      })
-    );
-
-    // Calculate total price
-    const calculatedTotalPrice = productDetails.reduce((total, item) => {
-      return total + item.quantity * item.price;
+    // Calculate total price of the order
+    const totalPrice = products.reduce((total, product) => {
+      // Check if the product structure is valid
+      if (product && product.product && product.product.price) {
+        return total + product.quantity * product.product.price;
+      } else {
+        // Log a warning for invalid product structure
+        console.warn("Invalid product structure for one or more items");
+        return total;
+      }
     }, 0);
 
-    // Check if the provided total price matches the calculated total price
-    if (calculatedTotalPrice !== totalPrice) {
-      return res.status(400).json({ error: "Invalid total price" });
+    // Check if the user has enough points to redeem
+    if (redeemPoints > 0 && user.rewards.points >= redeemPoints) {
+      // Deduct redeemed points from the user's rewards
+      user.rewards.points -= redeemPoints;
+
+      // Create a new Redeem entry
+      const redeem = new Redeem({
+        userId,
+        pointsRedeemed: redeemPoints,
+      });
+
+      // Save the redeem entry
+      await redeem.save();
     }
 
-    // Create the order
-    const order = new Order({
+    // Create a new order
+    const newOrder = new Order({
       userId,
-      products: productDetails,
+      products,
       totalPrice,
     });
 
-    await order.save();
+    // Save the order
+    await newOrder.save();
 
-    return res.status(201).json(order);
+    res.status(201).json({
+      message: "Order placed successfully",
+      order: newOrder,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

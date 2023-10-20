@@ -25,7 +25,13 @@ const challengeSchema = new mongoose.Schema({
     type: String,
   },
   challengeAgeLimit: {
-    type: Number,
+    min: {
+      type: Number,
+      default: 0,
+    },
+    max: {
+      type: Number,
+    },
   },
   lastDateToComplete: {
     type: Date,

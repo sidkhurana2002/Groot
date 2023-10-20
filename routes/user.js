@@ -27,5 +27,7 @@ router.post(
   "/earning_history",
   challengeController.getChallenge_user_earning_history
 );
+router.post("/like_Product", userController.likeProduct);
+router.post("/dislike_Product", userController.dislikeProduct);
 
 module.exports = router;
