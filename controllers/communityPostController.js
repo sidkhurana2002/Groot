@@ -95,8 +95,20 @@ const likePost = async (req, res) => {
   }
 };
 
+const getAllPosts = async (req, res) => {
+  try {
+    const allPosts = await CommunityPost.find().populate("userId", "username");
+
+    res.status(200).json(allPosts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   addCommunityPost,
   addComment,
   likePost,
+  getAllPosts,
 };
