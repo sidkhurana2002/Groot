@@ -273,28 +273,136 @@ const addTrip = async (req, res) => {
   }
 };
 
+// const getChallengeLeaderboard = async (req, res) => {
+//   try {
+//     const { challengeId } = req.body;
+
+//     // Find the challenge by challengeId
+//     const challenge = await Challenge.findById(challengeId);
+
+//     if (!challenge) {
+//       return res.status(404).json({ message: "Challenge not found" });
+//     }
+
+//     // Extract the users array from the challenge
+//     const users = challenge.users.map((user) => ({
+//       userId: user.userId,
+//       completed: user.completed,
+//       completionDate: user.completionDate,
+//     }));
+
+//     // Include challenge points in the response
+//     const challengePoints = challenge.challenge_points;
+
+//     res.status(200).json({ users, challengePoints });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+// const getChallengeLeaderboard = async (req, res) => {
+//   try {
+//     const { userId } = req.body;
+
+//     // Find the user by userId
+//     const user = await User.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Initialize the leaderboard
+//     const leaderboard = [];
+
+//     // Iterate through the user's challenges
+//     for (const challengeId of user.challenges) {
+//       // Find the challenge by challengeId
+//       const challenge = await Challenge.findById(challengeId);
+
+//       if (!challenge) {
+//         console.warn(`Challenge not found for id: ${challengeId}`);
+//         continue;
+//       }
+
+//       // Extract the relevant information from the challenge and user data
+//       const challengeData = {
+//         challengeId: challengeId,
+//         challengeName: challenge.challengeName,
+//         users: challenge.users.map((challengeUser) => {
+//           const userData = user.challenges.find(
+//             (userChallenge) =>
+//               userChallenge.challengeId.toString() === challengeId.toString()
+//           );
+
+//           return {
+//             userId: challengeUser.userId,
+//             completed: challengeUser.completed,
+//             completionDate: userData ? userData.completionDate : null,
+//           };
+//         }),
+//         challengePoints: challenge.challenge_points,
+//       };
+
+//       leaderboard.push(challengeData);
+//     }
+
+//     res.status(200).json({ leaderboard });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 const getChallengeLeaderboard = async (req, res) => {
   try {
-    const { challengeId } = req.body;
+    const { userId } = req.body;
 
-    // Find the challenge by challengeId
-    const challenge = await Challenge.findById(challengeId);
+    // Find the user by userId
+    const user = await User.findById(userId);
 
-    if (!challenge) {
-      return res.status(404).json({ message: "Challenge not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Extract the users array from the challenge
-    const users = challenge.users.map((user) => ({
-      userId: user.userId,
-      completed: user.completed,
-      completionDate: user.completionDate,
-    }));
+    // Initialize the leaderboard
+    const leaderboard = [];
 
-    // Include challenge points in the response
-    const challengePoints = challenge.challenge_points;
+    // Iterate through the user's challenges
+    for (const userChallenge of user.challenges) {
+      const challengeId = userChallenge.challengeId;
 
-    res.status(200).json({ users, challengePoints });
+      // Find the challenge by challengeId
+      const challenge = await Challenge.findById(challengeId);
+
+      if (!challenge) {
+        console.warn(`Challenge not found for id: ${challengeId}`);
+        continue;
+      }
+
+      // Extract the relevant information from the challenge and user data
+      const challengeData = {
+        challengeId: challengeId,
+        challengeName: challenge.challengeName,
+        users: challenge.users.map((challengeUser) => {
+          const userData = user.challenges.find(
+            (userChallenge) =>
+              userChallenge.challengeId.toString() === challengeId.toString()
+          );
+
+          return {
+            userId: challengeUser.userId,
+            completed: challengeUser.completed,
+            completionDate: userData ? userData.completionDate : null,
+          };
+        }),
+        challengePoints: challenge.challenge_points,
+      };
+
+      leaderboard.push(challengeData);
+    }
+
+    res.status(200).json({ leaderboard });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
