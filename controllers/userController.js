@@ -465,6 +465,58 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// const getTotalDistance = async (req, res) => {
+//   try {
+//     const totalCarbonEmission = await User.aggregate([
+//       {
+//         $group: {
+//           _id: null,
+//           totalCarbonEmission: { $sum: "$profile.totalCarbonEmission" },
+//         },
+//       },
+//     ]);
+
+//     const result =
+//       totalCarbonEmission.length > 0
+//         ? totalCarbonEmission[0]
+//         : { totalCarbonEmission: 0 };
+
+//     res.status(200).json(result);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+const getTotalDistance = async (req, res) => {
+  try {
+    const totalCarbonEmission = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalCarbonEmission: { $sum: "$profile.totalCarbonEmission" },
+        },
+      },
+    ]);
+
+    const result =
+      totalCarbonEmission.length > 0
+        ? {
+            totalCarbonEmission: totalCarbonEmission[0].totalCarbonEmission,
+            distance: totalCarbonEmission[0].totalCarbonEmission * 7.0422,
+          }
+        : { totalCarbonEmission: 0, distance: 0 };
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = {
+  getTotalDistance,
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -479,4 +531,5 @@ module.exports = {
   likeProduct,
   dislikeProduct,
   getAllUsers,
+  getTotalDistance,
 };

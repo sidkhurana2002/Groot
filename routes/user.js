@@ -30,5 +30,6 @@ router.post(
 router.post("/like_Product", userController.likeProduct);
 router.post("/dislike_Product", userController.dislikeProduct);
 router.get("/getallusers", userController.getAllUsers);
+router.get("/totaldistance", userController.getTotalDistance);
 
 module.exports = router;
