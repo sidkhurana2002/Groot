@@ -5,7 +5,7 @@ const adminnController = require("../controllers/adminController");
 const RedeemController = require("../controllers/RedeemController");
 
 router.post("/addChallenge", adminController.addChallenge);
-router.get("/getChallenges", adminController.getChallenges);
+router.post("/getChallenges", adminController.getChallenges);
 
 router.post("/register", adminnController.registerAdmin);
 router.post("/login", adminnController.loginAdmin);

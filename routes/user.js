@@ -13,8 +13,8 @@ router.post("/addTrip", async (req, res) => {
   await challengeController.addTrip(req, res);
 });
 // Add these lines after the existing routes
-router.get("/localLeaderboard", userController.getLocalLeaderboard);
-router.get("/globalLeaderboard", userController.getGlobalLeaderboard);
+router.post("/localLeaderboard", userController.getLocalLeaderboard);
+router.post("/globalLeaderboard", userController.getGlobalLeaderboard);
 router.post("/totalPointsandusers", userController.getTotalPointsAndUsers);
 router.get("/splitLeaderboard", userController.getSplitLeaderboard);
 router.post("/getUser", userController.getUser);
