@@ -1,5 +1,5 @@
-// // const User = require("../models/User");
-// // const Redeem = require("../models/Redeem");
+const User = require("../models/User");
+const Redeem = require("../models/Redeem");
 
 // // const redeemPoints = async (req, res) => {
 // //   try {
@@ -89,3 +89,27 @@
 // module.exports = {
 //   redeemPoints,
 // };
+const getTotalRedeemPoints = async (req, res) => {
+  try {
+    const totalRedeemPoints = await Redeem.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalPoints: { $sum: "$pointsRedeemed" },
+        },
+      },
+    ]);
+
+    const result =
+      totalRedeemPoints.length > 0 ? totalRedeemPoints[0] : { totalPoints: 0 };
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = {
+  getTotalRedeemPoints,
+};
