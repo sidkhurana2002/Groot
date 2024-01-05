@@ -42,7 +42,46 @@ const addChallenge = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-// vision impairment,legs impairment, hand impairment, hand amputee
+// vision impairment,legs impairment, hand impairment,
+// vision impairment- walking, public transport, carpooling
+// legs impairment- public transport, carpooling
+// hand impairment- public transport, carpooling, walking
+// exServicemen- exServicemen
+
+// const getChallenges = async (req, res) => {
+//   try {
+//     const { userId } = req.body;
+
+//     // Find the user by userId
+//     const user = await User.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Calculate user's age based on the user's birthdate or any other relevant attribute
+//     const userAge = user.profile.age;
+
+//     // Find challenges with age limit within the user's age
+//     const challenges = await Challenge.find({
+//       $or: [
+//         { challengeAgeLimit: { $exists: false } }, // Challenges without age limits
+//         {
+//           $and: [
+//             { "challengeAgeLimit.min": { $lte: userAge } },
+//             { "challengeAgeLimit.max": { $gte: userAge } },
+//           ],
+//         },
+//       ],
+//     });
+
+//     res.status(200).json({ challenges });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 const getChallenges = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -54,19 +93,63 @@ const getChallenges = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Calculate user's age based on the user's birthdate or any other relevant attribute
-    const userAge = user.profile.age;
+    // Get user profile details
+    const {
+      isDisabled,
+      isdisabledverify,
+      disabilityName,
+      isExServiceman,
+      isServicemanVerify,
+    } = user.profile;
 
-    // Find challenges with age limit within the user's age
+    // Filter challenges based on user's disability and ex-servicemen status
+    let challengeFilter = {};
+
+    if (isDisabled && isdisabledverify && disabilityName) {
+      // Challenges for users with disabilities
+      switch (disabilityName.toLowerCase()) {
+        case "vision impairment":
+          challengeFilter = {
+            tag: { $in: ["walking", "public transport", "carpooling"] },
+          };
+          break;
+        case "legs impairment":
+          challengeFilter = {
+            tag: { $in: ["public transport", "carpooling"] },
+          };
+          break;
+        case "hand impairment":
+          challengeFilter = {
+            tag: { $in: ["public transport", "carpooling", "walking"] },
+          };
+          break;
+        default:
+          // Handle other disability types if needed
+          break;
+      }
+    } else if (isExServiceman && isServicemanVerify) {
+      // Challenges for ex-servicemen
+      challengeFilter = { tag: "exServicemen" };
+    } else {
+      // Challenges for users who are neither disabled nor ex-servicemen
+      challengeFilter = { tag: { $ne: "exServicemen" } };
+    }
+
+    // Find challenges based on age and additional filters
     const challenges = await Challenge.find({
-      $or: [
-        { challengeAgeLimit: { $exists: false } }, // Challenges without age limits
+      $and: [
         {
-          $and: [
-            { "challengeAgeLimit.min": { $lte: userAge } },
-            { "challengeAgeLimit.max": { $gte: userAge } },
+          $or: [
+            { challengeAgeLimit: { $exists: false } },
+            {
+              $and: [
+                { "challengeAgeLimit.min": { $lte: user.profile.age } },
+                { "challengeAgeLimit.max": { $gte: user.profile.age } },
+              ],
+            },
           ],
         },
+        challengeFilter, // Additional challenge filters
       ],
     });
 
@@ -76,6 +159,8 @@ const getChallenges = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+module.exports = { getChallenges };
 
 // const addTrip = async (req, res) => {
 //   try {

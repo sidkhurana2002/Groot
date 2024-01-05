@@ -3,6 +3,7 @@ const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
+const User = require("../models/User");
 
 const registerAdmin = async (req, res) => {
   try {
@@ -72,8 +73,32 @@ const loginAdmin = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const verifyDisabledStatus = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Set isdisabledverify to true
+    user.profile.isdisabledverify = true;
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({ message: "Disabled status verified successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   registerAdmin,
   loginAdmin,
+  verifyDisabledStatus,
 };
