@@ -404,10 +404,10 @@ const getSplitLeaderboard = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { username } = req.body;
 
-    // Find the user by userId
-    const user = await User.findById(userId);
+    // Find the user by username
+    const user = await User.findOne({ username });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
