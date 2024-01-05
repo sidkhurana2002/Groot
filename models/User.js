@@ -71,7 +71,36 @@ const userSchema = new mongoose.Schema({
         count: Number,
       },
     ],
-    industry: String, // Add the industry attribute
+    industry: String,
+    isDisabled: {
+      type: Boolean,
+      default: false,
+    },
+    disabilityName: {
+      type: String,
+      default: null,
+    },
+    disabilityIdCard: {
+      type: String,
+      default: null,
+    },
+    isdisabledverify: {
+      type: Boolean,
+      default: false,
+    },
+
+    isExServiceman: {
+      type: Boolean,
+      default: false,
+    },
+    servicemanIdCard: {
+      type: String,
+      default: null,
+    },
+    isServicemanVerify: {
+      type: Boolean,
+      default: false,
+    },
   },
   trips: [
     {

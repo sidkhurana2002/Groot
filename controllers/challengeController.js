@@ -8,6 +8,7 @@ const addChallenge = async (req, res) => {
   try {
     const {
       title,
+      tag, //walking, cycling, public transport, carpooling, exservicemen
       description,
       challenge_points,
       challenge_distance,
@@ -19,6 +20,7 @@ const addChallenge = async (req, res) => {
 
     const newChallenge = new Challenge({
       title,
+      tag,
       description,
       challenge_points,
       challenge_distance,
@@ -40,7 +42,7 @@ const addChallenge = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// vision impairment,legs impairment, hand impairment, hand amputee
 const getChallenges = async (req, res) => {
   try {
     const { userId } = req.body;

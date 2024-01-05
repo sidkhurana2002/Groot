@@ -14,7 +14,12 @@ const registerUser = async (req, res) => {
       resident_location,
       name,
       age,
-      industry, // Add industry to the registration process
+      industry,
+      isDisabled, // Include isDisabled in the registration process
+      disabilityName,
+      disabilityIdCard,
+      isExServiceman,
+      servicemanIdCard,
     } = req.body;
 
     // Check if the user already exists
@@ -26,21 +31,48 @@ const registerUser = async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user with the correct field name for the password hash
+    // Check if the user is differently abled and has provided necessary details
+    if (isDisabled && (!disabilityName || !disabilityIdCard)) {
+      return res.status(400).json({
+        message: "Please provide disabilityName and disabilityIdCard",
+      });
+    }
+
+    // Check if the user is an ex-serviceman and has provided necessary details
+    if (isExServiceman && !servicemanIdCard) {
+      return res
+        .status(400)
+        .json({ message: "Please provide servicemanIdCard" });
+    }
+
+    // Create a new user with the correct field names for the password hash
     const newUser = new User({
       username,
       email,
       passwordHash: hashedPassword,
-      profile: { resident_location, name, age, industry }, // Include the age and industry in the profile
+      profile: {
+        resident_location,
+        name,
+        age,
+        industry,
+        isDisabled,
+        disabilityName,
+        disabilityIdCard,
+        isExServiceman,
+        servicemanIdCard,
+      },
     });
-    await newUser.save();
 
-    // Generate JWT token
+    // Generate JWT token using the existing method
     const token = newUser.generateAuthToken();
+
+    // Save the new user to the database
+    await newUser.save();
 
     // Set the JWT token in a cookie
     res.cookie("jwtToken", token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
 
+    // Respond with success message and user details
     return res
       .status(200)
       .json({ message: "User registered successfully", token });
