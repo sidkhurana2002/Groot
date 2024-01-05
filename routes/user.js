@@ -23,6 +23,10 @@ router.post(
   "/challengeLeaderboard",
   challengeController.getChallengeLeaderboard
 );
+router.post("/createRequest", challengeController.createRequest);
+router.post("/requests-in-radius", challengeController.getRequestsInRadius);
+router.post("/update-journey-status", challengeController.updateJourneyStatus);
+
 router.post(
   "/earning_history",
   challengeController.getChallenge_user_earning_history

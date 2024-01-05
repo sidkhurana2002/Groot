@@ -1,5 +1,7 @@
 const Challenge = require("../models/Challenge");
 const User = require("../models/User");
+const Journey = require("../models/Journey");
+
 const Trip = require("../models/Trip");
 const distanceController = require("./distanceController");
 const geolib = require("geolib");
@@ -524,10 +526,137 @@ const getChallenge_user_earning_history = async (req, res) => {
   }
 };
 
+// controllers/challengeController.js
+
+const createRequest = async (req, res) => {
+  try {
+    const {
+      userId,
+      start_latitude,
+      start_longitude,
+      end_location,
+      contact,
+      time,
+    } = req.body;
+
+    // Check if the user is verified as disabled
+    const user = await User.findById(userId);
+    if (!user || !user.profile.isdisabledverify) {
+      return res.status(403).json({ message: "User not verified as disabled" });
+    }
+
+    // Create a new journey request
+    const newRequest = new Journey({
+      start_latitude,
+      start_longitude,
+      user_id: userId,
+      end_location,
+      contact,
+      time,
+    });
+
+    // Save the new journey request
+    await newRequest.save();
+
+    res
+      .status(200)
+      .json({ message: "Request created successfully", request: newRequest });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in km
+  return distance;
+}
+
+const getRequestsInRadius = async (req, res) => {
+  try {
+    const { lat, long } = req.body;
+
+    // Find all requests within a 5km radius
+    const requests = await Journey.find({
+      status: "pending", // You may adjust this condition based on your requirements
+      start_latitude: { $exists: true },
+      start_longitude: { $exists: true },
+    });
+
+    // Filter requests within the specified radius
+    const requestsInRadius = requests.filter((request) => {
+      const distance = calculateDistance(
+        lat,
+        long,
+        request.start_latitude,
+        request.start_longitude
+      );
+
+      return distance <= 5; // Adjust the radius as needed
+    });
+
+    res.status(200).json({ requests: requestsInRadius });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+// controllers/challengeController.js
+const updateJourneyStatus = async (req, res) => {
+  try {
+    const { exServicemenUserId, journeySchemaId } = req.body;
+
+    // Find the JourneySchema by ID
+    const journey = await Journey.findById(journeySchemaId);
+
+    if (!journey) {
+      return res.status(404).json({ message: "Journey not found" });
+    }
+
+    // Update fields
+    journey.exservicemen_userid = exServicemenUserId;
+    journey.status = "complete";
+
+    // Save the updated JourneySchema
+    await journey.save();
+
+    // Check if the user exists
+    const user = await User.findById(exServicemenUserId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update user's total points and rewards
+    user.profile.progress.totalPoints += 500; // Add 500 points
+    user.rewards.points += 500; // Add 500 points
+
+    // Save the updated User
+    await user.save();
+
+    res.status(200).json({ message: "Journey status updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   addChallenge,
   getChallenges,
   addTrip,
   getChallengeLeaderboard,
   getChallenge_user_earning_history,
+  createRequest,
+  getRequestsInRadius,
+  updateJourneyStatus,
 };
