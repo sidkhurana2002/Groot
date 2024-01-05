@@ -97,8 +97,34 @@ const verifyDisabledStatus = async (req, res) => {
   }
 };
 
+const verifyExServicemenStatus = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Set isServicemanVerify to true
+    user.profile.isServicemanVerify = true;
+
+    // Save the updated user
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Ex-servicemen status verified successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 module.exports = {
   registerAdmin,
   loginAdmin,
   verifyDisabledStatus,
+  verifyExServicemenStatus,
 };
