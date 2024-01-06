@@ -4,6 +4,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
 const Product = require("../models/Product");
+const multer = require("multer");
+const Ticket = require("../models/Ticket");
 
 const registerUser = async (req, res) => {
   try {
@@ -531,12 +533,12 @@ const getTotalDistance = async (req, res) => {
     ]);
 
     const result =
-      totalCarbonEmission.length > 0
+      totalCarbonEmission.length > 0.0
         ? {
             totalCarbonEmission: totalCarbonEmission[0].totalCarbonEmission,
             distance: totalCarbonEmission[0].totalCarbonEmission * 7.0422,
           }
-        : { totalCarbonEmission: 0, distance: 0 };
+        : { totalCarbonEmission: 0.0, distance: 0 };
 
     res.status(200).json(result);
   } catch (error) {
@@ -547,6 +549,77 @@ const getTotalDistance = async (req, res) => {
 
 module.exports = {
   getTotalDistance,
+};
+
+// Multer configuration
+
+const postTicket = async (req, res) => {
+  try {
+    const { userId, challengeId, ticketPhoto } = req.body;
+
+    // Create a new ticket
+    const newTicket = new Ticket({
+      userId,
+      challengeId,
+      ticketPhoto,
+      status: "pending", // You can customize the status as needed
+    });
+
+    // Save the ticket to the database
+    await newTicket.save();
+
+    res
+      .status(201)
+      .json({ message: "Ticket posted successfully", ticket: newTicket });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updateTicketStatus = async (req, res) => {
+  try {
+    const { ticketId, status } = req.body;
+
+    // Find the ticket by ID
+    const ticket = await Ticket.findById(ticketId);
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    // Update the status
+    ticket.status = status;
+
+    // Save the updated ticket
+    await ticket.save();
+
+    // If the status is "rejected," deduct challenge points from the user
+    if (status === "rejected") {
+      // Assuming you have the user ID associated with the ticket
+      const userId = ticket.userId;
+
+      // Find the user by ID
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Deduct challenge points from total points and rewards points
+      const deductedPoints = ticket.challengePoints; // Replace with the actual property name for challenge points
+      user.profile.progress.totalPoints -= deductedPoints;
+      user.rewards.points -= deductedPoints;
+
+      // Save the updated user
+      await user.save();
+    }
+
+    res.status(200).json({ message: "Ticket status updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 module.exports = {
@@ -564,4 +637,6 @@ module.exports = {
   dislikeProduct,
   getAllUsers,
   getTotalDistance,
+  postTicket,
+  updateTicketStatus,
 };

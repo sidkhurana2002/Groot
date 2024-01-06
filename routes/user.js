@@ -18,6 +18,9 @@ router.post("/globalLeaderboard", userController.getGlobalLeaderboard);
 router.post("/totalPointsandusers", userController.getTotalPointsAndUsers);
 router.get("/splitLeaderboard", userController.getSplitLeaderboard);
 router.post("/getUser", userController.getUser);
+router.post("/postTicket", userController.postTicket);
+router.post("/updateTicketStatus", userController.updateTicketStatus);
+
 // Add this line after the existing routes
 router.post(
   "/challengeLeaderboard",
