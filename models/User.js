@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema({
     },
     totalCarbonEmission: {
       type: Number,
-      default: 0,
+      default: 0.0,
     },
     lastChallengeDateTime: {
       type: Date,
